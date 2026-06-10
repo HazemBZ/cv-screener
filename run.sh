@@ -16,7 +16,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 if [ "${1:-}" = "--web" ]; then
     PORT="${2:-8080}"
     echo "🔨 Building Docker image..."
-    docker build -t cv-screener-web -f "$SCRIPT_DIR/Dockerfile.web" "$SCRIPT_DIR" > /dev/null
+    docker build -t cv-screener-web "$SCRIPT_DIR" > /dev/null
     echo "🚀 Starting web UI on http://0.0.0.0:$PORT"
     echo ""
     docker run --rm -p "$PORT:8080" cv-screener-web
@@ -46,7 +46,7 @@ OUTPUT_ABS="$(realpath "$(dirname "$OUTPUT")")/$(basename "$OUTPUT")"
 CRITERIA_ABS="$(realpath "$CRITERIA")"
 
 echo "🔨 Building Docker image..."
-docker build -t cv-screener "$SCRIPT_DIR" > /dev/null
+docker build -t cv-screener -f "$SCRIPT_DIR/Dockerfile.cli" "$SCRIPT_DIR" > /dev/null
 
 echo "🚀 Running CV screener..."
 echo "   Input:   $INPUT_ABS"

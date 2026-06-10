@@ -15,6 +15,12 @@ WORKDIR /app
 COPY pyproject.toml .
 RUN pip install --no-cache-dir .
 
-COPY cv_screener.py criteria.yaml ./
+COPY cv_screener.py webapp.py criteria.yaml ./
+COPY templates/ ./templates/
 
-ENTRYPOINT ["python", "cv_screener.py"]
+# Expose the web port
+EXPOSE 8080
+
+ENV PORT=8080
+
+ENTRYPOINT ["python", "webapp.py"]
