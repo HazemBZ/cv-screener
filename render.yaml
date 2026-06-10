@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: cv-screener
+    runtime: docker
+    repo: https://github.com/HazemBZ/cv-screener
+    branch: main
+    dockerfilePath: Dockerfile.web
+    healthCheckPath: /
+    envVars:
+      - key: PORT
+        value: "8080"

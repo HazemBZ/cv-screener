@@ -1,0 +1,23 @@
+# Virtual environment
+.venv/
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+
+# Bundled tesseract (not needed for Docker deploy)
+tesseract/
+
+# Dependency lock files (uv.lock tracked but fine to keep)
+# Editor/IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Temp output
+/tmp/
+samples/

@@ -1,0 +1,85 @@
+# ============================================================
+# CV Screening Criteria Configuration
+# ============================================================
+# Edit this file to match your job requirements.
+# Each skill/keyword has a weight (impact on overall score).
+# The final score is computed as a weighted percentage 0-100.
+# ============================================================
+
+# Required skills with weights (higher = more important)
+required_skills:
+  python: 10
+  machine learning: 8
+  deep learning: 7
+  nlp: 6
+  computer vision: 6
+  tensorflow: 5
+  pytorch: 5
+  docker: 4
+  kubernetes: 4
+  aws: 4
+  git: 3
+  sql: 3
+  rest api: 3
+  flask: 3
+  django: 3
+  fastapi: 3
+  react: 2
+  javascript: 2
+  java: 2
+  c++: 2
+
+# Minimum years of experience required
+min_experience_years: 0
+
+# Preferred education level (one of: high_school, bachelor, master, phd)
+min_education: bachelor
+
+# Degrees that qualify (matched as substrings)
+qualifying_degrees:
+  - bachelor
+  - b.s.
+  - b.tech
+  - b.e.
+  - master
+  - m.s.
+  - m.tech
+  - m.e.
+  - phd
+  - ph.d.
+  - doctor
+
+# Role/job title keywords that add bonus points
+preferred_roles:
+  - data scientist
+  - ml engineer
+  - machine learning engineer
+  - ai engineer
+  - research scientist
+  - data engineer
+  - software engineer
+  - senior
+
+# Scoring weights (must sum to 100)
+scoring_weights:
+  skills_match: 50       # How many required skills are present
+  experience: 25         # Years of relevant experience
+  education: 15          # Education level match
+  role_relevance: 10     # Role/title fit
+
+# Output columns (in order)
+output_columns:
+  - File Name
+  - Candidate Name
+  - Email
+  - Phone
+  - Skills Found
+  - Skills Score
+  - Years Experience
+  - Experience Score
+  - Education
+  - Education Score
+  - Current Role
+  - Role Score
+  - Overall Score
+  - Notes

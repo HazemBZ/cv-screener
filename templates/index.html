@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CV Screener</title>
+<style>
+  /* ------------------------------------------------------------------ */
+  /* Reset & base                                                       */
+  /* ------------------------------------------------------------------ */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; font-size: 15px; color: #1a2332; background: #f4f6f9; }
+  body { min-height: 100vh; display: flex; flex-direction: column; }
+
+  .container { max-width: 960px; margin: 0 auto; padding: 2rem 1.5rem; width: 100%; }
+  header { text-align: center; margin-bottom: 2rem; }
+  header h1 { font-size: 1.75rem; font-weight: 700; letter-spacing: -0.02em; color: #1a2332; }
+  header p { color: #5a6e8a; margin-top: 0.3rem; font-size: 0.9rem; }
+
+  .drop-zone {
+    border: 2px dashed #c0ccda;
+    border-radius: 12px;
+    padding: 2.5rem 1.5rem;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color 0.2s, background 0.2s;
+    background: #ffffff;
+  }
+  .drop-zone:hover { border-color: #4a90d9; background: #f0f6ff; }
+  .drop-zone.drag-over { border-color: #4a90d9; background: #e8f0fe; border-style: solid; }
+  .drop-zone-icon { font-size: 2.5rem; line-height: 1; margin-bottom: 0.5rem; color: #4a90d9; }
+  .drop-zone-text { font-size: 1rem; color: #3d5266; font-weight: 500; }
+  .drop-zone-hint { font-size: 0.8rem; color: #7a8fa8; margin-top: 0.3rem; }
+  .drop-zone input[type="file"] { display: none; }
+
+  .file-list { margin-top: 1rem; display: none; }
+  .file-list.show { display: block; }
+  .file-list-item {
+    display: flex; align-items: center; gap: 0.5rem;
+    padding: 0.5rem 0.75rem;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    margin-bottom: 0.3rem;
+    font-size: 0.85rem;
+    color: #3d5266;
+  }
+  .file-list-item .remove {
+    margin-left: auto;
+    cursor: pointer;
+    color: #e5534b;
+    font-weight: 700;
+    padding: 0 0.3rem;
+  }
+  .file-list-item .remove:hover { color: #c4382f; }
+
+  .btn {
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    padding: 0.65rem 1.5rem;
+    font-size: 0.9rem; font-weight: 600;
+    border: none; border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.15s, transform 0.1s, box-shadow 0.15s;
+  }
+  .btn:active { transform: scale(0.97); }
+  .btn-primary { background: #4a90d9; color: #fff; }
+  .btn-primary:hover { background: #3a7bc8; box-shadow: 0 2px 8px rgba(74,144,217,0.3); }
+  .btn-primary:disabled { background: #b0c4dc; color: #fff; cursor: not-allowed; box-shadow: none; }
+  .btn-success { background: #2d8a4e; color: #fff; }
+  .btn-success:hover { background: #257a42; box-shadow: 0 2px 8px rgba(45,138,78,0.3); }
+  .btn-outline {
+    background: transparent;
+    border: 1px solid #c0ccda;
+    color: #3d5266;
+  }
+  .btn-outline:hover { border-color: #4a90d9; color: #4a90d9; }
+
+  .actions { margin-top: 1rem; display: flex; gap: 0.75rem; flex-wrap: wrap; }
+
+  .spinner {
+    display: inline-block; width: 1.2rem; height: 1.2rem;
+    border: 2px solid #d0d8e4; border-top-color: #4a90d9;
+    border-radius: 50%;
+    animation: spin 0.6s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .loading-overlay {
+    display: none; align-items: center; justify-content: center; gap: 0.75rem;
+    padding: 1.5rem;
+    color: #5a6e8a;
+    font-size: 0.9rem;
+  }
+  .loading-overlay.show { display: flex; }
+
+  .results { display: none; margin-top: 2rem; }
+  .results.show { display: block; }
+
+  .summary-cards {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+  }
+  .summary-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 1rem;
+    text-align: center;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  }
+  .summary-card .value { font-size: 1.5rem; font-weight: 700; color: #1a2332; }
+  .summary-card .label { font-size: 0.75rem; color: #7a8fa8; text-transform: uppercase; letter-spacing: 0.05em; margin-top: 0.2rem; }
+
+  .table-wrap {
+    overflow-x: auto;
+    border-radius: 10px;
+    border: 1px solid #e2e8f0;
+    background: #ffffff;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  }
+  table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+  th, td { text-align: left; padding: 0.65rem 0.75rem; white-space: nowrap; }
+  th {
+    background: #f8fafc;
+    color: #5a6e8a;
+    font-weight: 600;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    position: sticky; top: 0;
+  }
+  tr { border-bottom: 1px solid #eef2f6; }
+  tr:hover td { background: #f8fafc; }
+  .score-high { color: #1a8a3e; font-weight: 700; }
+  .score-mid  { color: #c99200; font-weight: 600; }
+  .score-low  { color: #d43d33; font-weight: 500; }
+  .notes-cell { color: #d43d33; font-size: 0.8rem; max-width: 200px; white-space: normal; word-break: break-word; }
+
+  .error-msg {
+    display: none;
+    background: #fef2f2; border: 1px solid #fecaca;
+    color: #b91c1c;
+    padding: 0.75rem 1rem;
+    border-radius: 8px;
+    margin-top: 1rem;
+    font-size: 0.85rem;
+  }
+  .error-msg.show { display: block; }
+
+  footer { margin-top: auto; text-align: center; padding: 1.5rem; color: #9aaec4; font-size: 0.8rem; }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <header>
+    <h1>CV Screener</h1>
+    <p>Upload PDF resumes — get scored results in seconds</p>
+  </header>
+
+  <!-- Drop zone -->
+  <div class="drop-zone" id="dropZone">
+    <div class="drop-zone-icon">&#x1F4C4;</div>
+    <div class="drop-zone-text">Drop PDF files here, or click to select</div>
+    <div class="drop-zone-hint">Accepts .pdf files only</div>
+    <input type="file" id="fileInput" multiple accept=".pdf" />
+  </div>
+
+  <!-- File list -->
+  <div class="file-list" id="fileList"></div>
+
+  <!-- Actions -->
+  <div class="actions">
+    <button class="btn btn-primary" id="uploadBtn" disabled>
+      &#9654; Process CVs
+    </button>
+    <button class="btn btn-success" id="downloadBtn" style="display:none;">
+      &#11015; Download Excel
+    </button>
+  </div>
+
+  <!-- Loading -->
+  <div class="loading-overlay" id="loadingOverlay">
+    <span class="spinner"></span>
+    <span id="loadingText">Processing CVs...</span>
+  </div>
+
+  <!-- Error -->
+  <div class="error-msg" id="errorMsg"></div>
+
+  <!-- Results -->
+  <div class="results" id="results">
+    <div class="summary-cards" id="summaryCards"></div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr id="tableHead"></tr></thead>
+        <tbody id="tableBody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<footer>CV Screener &mdash; scores based on configured criteria</footer>
+
+<script>
+(function() {
+  'use strict';
+
+  /* ---- State ---- */
+  let selectedFiles = [];
+  let lastResults = null;
+
+  const dropZone = document.getElementById('dropZone');
+  const fileInput = document.getElementById('fileInput');
+  const fileList = document.getElementById('fileList');
+  const uploadBtn = document.getElementById('uploadBtn');
+  const downloadBtn = document.getElementById('downloadBtn');
+  const loadingOverlay = document.getElementById('loadingOverlay');
+  const loadingText = document.getElementById('loadingText');
+  const errorMsg = document.getElementById('errorMsg');
+  const resultsDiv = document.getElementById('results');
+  const summaryCards = document.getElementById('summaryCards');
+  const tableHead = document.getElementById('tableHead');
+  const tableBody = document.getElementById('tableBody');
+
+  /* ---- Drop zone click ---- */
+  dropZone.addEventListener('click', () => fileInput.click());
+
+  /* ---- Drag events ---- */
+  dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('drag-over'); });
+  dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
+  dropZone.addEventListener('drop', (e) => {
+    e.preventDefault();
+    dropZone.classList.remove('drag-over');
+    addFiles(e.dataTransfer.files);
+  });
+
+  /* ---- File input ---- */
+  fileInput.addEventListener('change', () => {
+    addFiles(fileInput.files);
+    fileInput.value = '';
+  });
+
+  function addFiles(fileListObj) {
+    const newFiles = [];
+    for (const f of fileListObj) {
+      if (f.name.toLowerCase().endsWith('.pdf')) {
+        if (!selectedFiles.find(sf => sf.name === f.name && sf.size === f.size)) {
+          newFiles.push(f);
+        }
+      }
+    }
+    if (newFiles.length === 0) return;
+    selectedFiles = [...selectedFiles, ...newFiles];
+    renderFileList();
+  }
+
+  function removeFile(index) {
+    selectedFiles.splice(index, 1);
+    renderFileList();
+  }
+
+  function renderFileList() {
+    if (selectedFiles.length === 0) {
+      fileList.classList.remove('show');
+      uploadBtn.disabled = true;
+      return;
+    }
+    fileList.classList.add('show');
+    fileList.innerHTML = selectedFiles.map((f, i) =>
+      `<div class="file-list-item">
+        <span>&#x1F4C4;</span>
+        <span>${f.name}</span>
+        <span style="color:#8a9fb5;font-size:0.75rem;"> (${(f.size / 1024).toFixed(1)} KB)</span>
+        <span class="remove" data-index="${i}">&times;</span>
+      </div>`
+    ).join('');
+    fileList.querySelectorAll('.remove').forEach(el => {
+      el.addEventListener('click', () => removeFile(parseInt(el.dataset.index)));
+    });
+    uploadBtn.disabled = false;
+  }
+
+  /* ---- Upload ---- */
+  uploadBtn.addEventListener('click', async () => {
+    if (selectedFiles.length === 0) return;
+
+    // Reset UI
+    errorMsg.classList.remove('show');
+    resultsDiv.classList.remove('show');
+    downloadBtn.style.display = 'none';
+    uploadBtn.disabled = true;
+    loadingOverlay.classList.add('show');
+
+    const formData = new FormData();
+    for (const f of selectedFiles) {
+      formData.append('files', f);
+    }
+
+    let step = 0;
+    const ellipsis = setInterval(() => {
+      step = (step + 1) % 4;
+      loadingText.textContent = 'Processing CVs' + '.'.repeat(step);
+    }, 400);
+
+    try {
+      const resp = await fetch('/upload', { method: 'POST', body: formData });
+      if (!resp.ok) {
+        const err = await resp.json();
+        throw new Error(err.detail || `Server error ${resp.status}`);
+      }
+      const data = await resp.json();
+      lastResults = data;
+      showResults(data);
+      downloadBtn.style.display = 'inline-flex';
+    } catch (err) {
+      errorMsg.textContent = err.message || 'Upload failed. Is the server running?';
+      errorMsg.classList.add('show');
+    } finally {
+      clearInterval(ellipsis);
+      loadingText.textContent = 'Processing CVs...';
+      loadingOverlay.classList.remove('show');
+      uploadBtn.disabled = false;
+    }
+  });
+
+  /* ---- Download ---- */
+  downloadBtn.addEventListener('click', () => {
+    window.location.href = '/download';
+  });
+
+  /* ---- Show results ---- */
+  function showResults(data) {
+    const { results, summary } = data;
+
+    // Summary cards
+    summaryCards.innerHTML = `
+      <div class="summary-card"><div class="value">${summary.total}</div><div class="label">CVs Processed</div></div>
+      <div class="summary-card"><div class="value">${summary.mean}</div><div class="label">Mean Score</div></div>
+      <div class="summary-card"><div class="value">${summary.max}</div><div class="label">Highest Score</div></div>
+      <div class="summary-card"><div class="value">${summary.min}</div><div class="label">Lowest Score</div></div>
+      <div class="summary-card"><div class="value">${summary.time_s}s</div><div class="label">Processing Time</div></div>
+    `;
+
+    // Table header
+    const columns = Object.keys(results[0] || {});
+    tableHead.innerHTML = columns.map(c => `<th>${c}</th>`).join('');
+
+    // Table body
+    tableBody.innerHTML = results.map(row => {
+      const score = row['Overall Score'] || 0;
+      const scoreClass = score >= 70 ? 'score-high' : score >= 40 ? 'score-mid' : 'score-low';
+      return '<tr>' + columns.map(col => {
+        let val = row[col] ?? '';
+        if (col === 'Overall Score') {
+          val = `<span class="${scoreClass}">${val}</span>`;
+        }
+        if (col === 'Notes' && val) {
+          val = `<span class="notes-cell">${val}</span>`;
+        }
+        return `<td>${val}</td>`;
+      }).join('') + '</tr>';
+    }).join('');
+
+    resultsDiv.classList.add('show');
+  }
+})();
+</script>
+</body>
+</html>
